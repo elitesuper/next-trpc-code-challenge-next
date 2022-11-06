@@ -10,14 +10,32 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Tag {
+  id    Int          @id @default(autoincrement())
+  name  String
+  posts TagonPosts[]
+}
+
 model Post {
-  id    String @id @default(uuid())
+  id    String       @id @default(uuid())
   title String
   text  String
+  tags  TagonPosts[]
 
   // To return `Date`s intact through the API we use transformers
   // https://trpc.io/docs/data-transformers
   // This is unique so it can be used for cursor-based pagination
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
+}
+
+model TagonPosts{
+  tag       Tag @relation(fields: [tagId], references: [id])
+  tagId     Int // relation scalar field (used in the `@relation` attribute above)
+  post      Post @relation(fields: [postId], references: [id])
+  postId    String // relation scalar field (used in the `@relation` attribute above)
+  assignedAt DateTime @default(now())
+  assignedBy String
+
+  @@id([tagId, postId])
 }
