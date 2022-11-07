@@ -15,7 +15,6 @@ export interface Item {
 
 const AddPost = () => {
 
-  const [dataload, setdataload] = React.useState(false);
   const [selectedItems, setSelectedItems] = React.useState<Item[]>([]);
 
   const handleCreateItem = (item: Item) => {
@@ -47,6 +46,9 @@ const AddPost = () => {
         statusCode={tagQuery.error.data?.httpStatus ?? 500}
       />
     )
+  }
+  if (tagQuery.status !== 'success') {
+    return <>Loading...</>
   }
 
   const {data} = tagQuery;
@@ -83,9 +85,6 @@ const AddPost = () => {
           }
         }}
       >
-        <label htmlFor="title">Title:</label>
-        <br />
-
         <CUIAutoComplete
           label="Choose tags"
           placeholder="Type a Tags"
@@ -96,7 +95,8 @@ const AddPost = () => {
             handleSelectedItemsChange(changes.selectedItems)
           }
         />
-
+        <label htmlFor="title">Title:</label>
+        <br />
         <Input
           id="title"
           name="title"

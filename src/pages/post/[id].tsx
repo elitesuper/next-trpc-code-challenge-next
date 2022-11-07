@@ -20,20 +20,26 @@ const PostViewPage: NextPageWithLayout = () => {
   if (postQuery.status !== 'success') {
     return <>Loading...</>
   }
+  
   const { data } = postQuery
+
   return (
     <>
       <Stack spacing={3}>
-      <Heading>{data[0].title}</Heading>
-      <em>Created {data[0].createdAt.toLocaleDateString('en-us')}</em>
-        <Text fontSize='2xl'>{data[0].text}</Text>
+        <Heading>{data[0].title}</Heading>
+        <Stack direction='row'>
+          <Badge variant='solid' colorScheme='green'>
+            Created {data[0].createdAt.toLocaleDateString('en-us')}
+          </Badge>
+        </Stack>
         <Stack direction='row'>
           {data[1].map((item:any)=>
-            <Badge variant='outline' colorScheme='green'>
+            <Badge key={item.label} variant='outline' colorScheme='green'>
               {item.label}
             </Badge>
           )}
-      </Stack>
+        </Stack>
+        <Text fontSize='2xl'>{data[0].text}</Text>
       </Stack>
 
       {/* <h2>Raw data:</h2>
