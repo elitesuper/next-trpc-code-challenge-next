@@ -3,7 +3,7 @@
  * This is an example router, you can delete this file and then update `../pages/api/trpc/[trpc].tsx`
  */
 import { t } from '../trpc'
-import { Prisma } from '@prisma/client'
+import { Post, Prisma } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 import { z } from 'zod'
 import { prisma } from '../prisma'
@@ -20,6 +20,18 @@ const defaultPostSelect = Prisma.validator<Prisma.PostSelect>()({
   createdAt: true,
   updatedAt: true
 })
+
+const defaultTagSelect = Prisma.validator<Prisma.TagSelect>()({
+  id: true,
+  label: true,
+  value: true,
+})
+
+const defaultTagonPostSelect = Prisma.validator<Prisma.TagonPostsSelect>()({
+  tagId:true,
+  postId:true,
+})
+
 
 export const postRouter = t.router({
   list: t.procedure
@@ -61,6 +73,15 @@ export const postRouter = t.router({
         nextCursor
       }
     }),
+  alltaglist: t.procedure.query( async () =>{
+    const tags = await prisma.tag.findMany({
+      select: {
+        value:true,
+        label:true,
+      }
+    });
+    return tags
+  }),
   byId: t.procedure
     .input(
       z.object({
@@ -73,27 +94,82 @@ export const postRouter = t.router({
         where: { id },
         select: defaultPostSelect
       })
+
+      const tagsref = await prisma.tagonPosts.findMany({
+        where: { postId: post?.id },
+        select:{tagId:true},
+      })
+      var tags:any[] = []
+      for(var i of tagsref){
+        const selftags = await prisma.tag.findUnique({
+          where: { id: i.tagId },
+          select:{label:true,},
+        })
+        tags.push(selftags);
+      }
+
       if (!post) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: `No post with id '${id}'`
         })
       }
-      return post
+      return [post,tags]
     }),
   add: t.procedure
     .input(
       z.object({
         id: z.string().uuid().optional(),
         title: z.string().min(1).max(32),
-        text: z.string().min(1)
+        text: z.string().min(1),
+        tags:z.array(z.object({value:z.string(),label:z.string()}))
       })
     )
     .mutation(async ({ input }) => {
+      const postdata = {
+        id: input.id,
+        title: input.title,
+        text: input.text,
+      }
       const post = await prisma.post.create({
-        data: input,
+        data: postdata,
         select: defaultPostSelect
       })
+      
+
+      for(const i of input.tags){
+        const value = await prisma.tag.findFirst(
+          {
+            select: defaultTagSelect,
+            where: { value: i.value },
+          }
+        )
+        if(value == null)
+        {
+          const tag = await prisma.tag.create({
+            data:i,
+            select: defaultTagSelect
+          })
+
+          const tagonpostdata = {
+            tagId:tag.id,
+            postId:post.id,
+          }
+          const tagonpost = await prisma.tagonPosts.create({
+            data:tagonpostdata,
+            select:defaultTagonPostSelect
+          })
+        }else{
+          const tagonpostdata = {
+            tagId:value.id,
+            postId:post.id,
+          }
+          const tagonpost = await prisma.tagonPosts.create({
+            data:tagonpostdata,
+            select:defaultTagonPostSelect
+          })
+        }
+      }
       return post
     })
 })

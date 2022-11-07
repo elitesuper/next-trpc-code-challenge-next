@@ -1,4 +1,4 @@
-import { Code, Heading, Text } from '@chakra-ui/react'
+import { Stack,Badge, Heading, Text } from '@chakra-ui/react'
 import NextError from 'next/error'
 import { useRouter } from 'next/router'
 import { NextPageWithLayout } from '~/pages/_app'
@@ -23,15 +23,23 @@ const PostViewPage: NextPageWithLayout = () => {
   const { data } = postQuery
   return (
     <>
-      <Heading>{data.title}</Heading>
-      <em>Created {data.createdAt.toLocaleDateString('en-us')}</em>
+      <Stack spacing={3}>
+      <Heading>{data[0].title}</Heading>
+      <em>Created {data[0].createdAt.toLocaleDateString('en-us')}</em>
+        <Text fontSize='2xl'>{data[0].text}</Text>
+        <Stack direction='row'>
+          {data[1].map((item:any)=>
+            <Badge variant='outline' colorScheme='green'>
+              {item.label}
+            </Badge>
+          )}
+      </Stack>
+      </Stack>
 
-      <Text>{data.text}</Text>
-
-      <h2>Raw data:</h2>
+      {/* <h2>Raw data:</h2>
       <Code>
         <pre>{JSON.stringify(data, null, 4)}</pre>
-      </Code>
+      </Code> */}
     </>
   )
 }
