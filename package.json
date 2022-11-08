@@ -36,7 +36,7 @@
     "@trpc/server": "^10.0.0-proxy-beta.13",
     "chakra-ui-autocomplete": "^1.4.5",
     "framer-motion": "^7.5.1",
-    "next": "^12.3.1",
+    "next": "^13.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "superjson": "^1.10.0",
